@@ -1,32 +1,415 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Primera Página</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>libro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Lato:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    :root { --book-radius: 16px; }
+    body { background-color: #1a1a1a; overflow: hidden; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: 'Lato', sans-serif; }
+    .book-container { height: 85vh; width: auto; aspect-ratio: 2 / 1.41; max-width: 95vw; z-index: 10; display: flex; justify-content: center; align-items: center; position: relative; perspective: 2500px; }
+    .book { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.5s ease-out; border-radius: calc(var(--book-radius) + 4px); box-shadow: 0 18px 60px rgba(0,0,0,.45); background: transparent; }
+    .closed-left-mask{ position:absolute; left:0; top:0; width:50%; height:100%; background:#1a1a1a; border-top-left-radius: calc(var(--book-radius) + 4px); border-bottom-left-radius: calc(var(--book-radius) + 4px); pointer-events:none; z-index:1200; display:none; }
+    .book.is-closed .closed-left-mask{ display:block; }
+    .page { width:50%; height:100%; position:absolute; top:0; right:0; background-color:transparent; transform-origin:left; transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1); transform-style: preserve-3d; box-shadow:none; backface-visibility:hidden; will-change:transform; pointer-events:auto; }
+    .page-content { position:absolute; inset:0; display:flex; justify-content:center; align-items:center; padding:0; backface-visibility:hidden; overflow:hidden; background-size:cover; background-position:center; cursor:default; }
+    .page .front { border-top-right-radius: var(--book-radius); border-bottom-right-radius: var(--book-radius); }
+    .page .back { transform: rotateY(180deg); border-top-left-radius: var(--book-radius); border-bottom-left-radius: var(--book-radius); }
+    .page .front::before, .page .back::before{ content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.055); }
+    .page .front::after{ content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; box-shadow: inset 24px 0 48px rgba(0,0,0,.06); }
+    .page .back::after{ content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; box-shadow: inset -24px 0 48px rgba(0,0,0,.06); background: linear-gradient(to left, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0) 10%); mix-blend-mode: multiply; }
+    .cover .front { cursor: default; }
+    .cover .front::before, .cover .front::after { box-shadow: none !important; background: none !important; }
+    .open-button { position:absolute; bottom:15%; left:50%; transform:translateX(-50%); background-color:#e83e8c; color:#fff; padding:.5rem 1.5rem; font-size:1rem; border-radius:50px; cursor:pointer; font-weight:600; border:none; box-shadow:0 2px 5px rgba(0,0,0,.2); transition:all .3s ease; }
+    .open-button:hover { transform: translateX(-50%) scale(1.05); }
+    .flipped { transform: rotateY(-180deg); }
+    .book-spine { position:absolute; top:0; left:50%; width:30px; height:100%; background:#f8b1c2; transform:translateX(-50%) translateZ(-15px); transform-style:preserve-3d; pointer-events:none; border-radius:12px; box-shadow: inset 0 0 10px rgba(0,0,0,.15); }
+    .book.is-closed .book-spine{ box-shadow:none; }
+    .nav-buttons-container { position:absolute; bottom:5%; width:100%; display:none; justify-content:space-between; padding:0 5%; z-index:1001; pointer-events:none; }
+    .nav-button { background-color:#e83e8c; color:#fff; padding:.4rem 1.3rem; font-size:.9rem; border:none; border-radius:50px; cursor:pointer; font-weight:600; box-shadow:0 2px 5px rgba(0,0,0,.2); transition:all .3s ease; pointer-events:all; }
+    .nav-button:hover { transform: scale(1.05); }
+    .nav-button:disabled { opacity:.5; cursor:not-allowed; }
+    @media (max-width: 768px) { :root { --book-radius: 12px; } .book-container { width:90vw; height:auto; aspect-ratio:1/1.41; } .page { width:100%; } .nav-buttons-container { padding:0 10px; } .book-spine { display:none; } }
+    .toolbar{ position:fixed; top:8px; left:50%; transform:translateX(-50%); display:flex; gap:.4rem; z-index:2005; user-select:none; background:rgba(17,17,17,.55); border:1px solid rgba(255,255,255,.08); padding:.3rem .45rem; border-radius:999px; backdrop-filter: blur(6px); box-shadow:0 10px 20px rgba(0,0,0,.25); }
+    .tbtn{ display:flex; align-items:center; gap:.35rem; font-weight:700; font-size:.8rem; padding:.28rem .6rem; border-radius:999px; border:none; background:rgba(255,255,255,.08); color:#fff; cursor:pointer; transition: transform .15s ease, background .15s ease; }
+    .tbtn:hover{ transform:translateY(-1px) }
+    .tbtn[aria-pressed="true"]{ background: rgba(232,62,140,.28); }
+    @media (max-width:768px){ .toolbar{ top:calc(env(safe-area-inset-top,0px) + 6px); padding:.25rem .4rem; } .tbtn{ font-size:.78rem; padding:.25rem .5rem; } }
+    .progress-wrap{ position:fixed; left:50%; transform:translateX(-50%); bottom:16px; width:min(720px, 92vw); z-index:1500; display:none; text-align:center; user-select:none; }
+    .progress{ width:100%; height:6px; border-radius:999px; overflow:hidden; background: rgba(255,255,255,.14); box-shadow: inset 0 0 6px rgba(0,0,0,.4); }
+    .progress > span{ display:block; height:100%; width:0%; background: linear-gradient(90deg, rgba(232,62,140,.9), rgba(232,62,140,.55)); transition: width .35s ease; }
+    .page-number{ margin-top:6px; font-weight:700; font-size:.9rem; letter-spacing:.6px; opacity:.9; text-shadow:0 1px 0 rgba(0,0,0,.5); color:#fff; }
+    .hint{ position:fixed; left:50%; transform:translateX(-50%); bottom:80px; max-width:min(900px, 92vw); background:rgba(17,17,17,.7); border:1px solid rgba(255,255,255,.08); color:#fff; padding:.7rem .9rem; border-radius:14px; z-index:1600; box-shadow:0 10px 30px rgba(0,0,0,.4); display:none; line-height:1.35; backdrop-filter: blur(6px); }
+    .hint.open{ display:block; animation: hintIn .25s ease-out; }
+    .hint .kbd{ display:inline-block; padding:.05rem .45rem; border-radius:6px; background:rgba(255,255,255,.12); margin:0 .08rem; font-weight:700; }
+    .hint .close{ margin-left:.6rem; padding:.2rem .5rem; border:none; border-radius:8px; cursor:pointer; background:rgba(232,62,140,.28); color:#fff; font-weight:700; }
+    @keyframes hintIn{ from{ transform:translate(-50%, 8px); opacity:0 } to{ transform:translate(-50%, 0); opacity:1 } }
+    .zoom-modal{ position:fixed; inset:0; background:rgba(0,0,0,.88); display:none; z-index:2000; }
+    .zoom-modal.open{ display:block; }
+    .zoom-stage{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .zoom-img{ max-width:92vw; max-height:92vh; will-change:transform; cursor:grab; touch-action:none; user-select:none; transform:translate(0px,0px) scale(1); transition:transform .08s ease-out; border-radius:12px; background:#111; box-shadow:0 18px 60px rgba(0,0,0,.55); -webkit-user-drag:none; user-drag:none; }
+    .zoom-toolbar{ position:fixed; top:14px; right:16px; display:flex; gap:.5rem; z-index:2001; background: rgba(17,17,17,.6); border:1px solid rgba(255,255,255,.08); padding:.35rem .5rem; border-radius:999px; backdrop-filter: blur(6px); }
+    .zoom-btn{ border:none; border-radius:999px; padding:.35rem .7rem; font-weight:700; cursor:pointer; background:rgba(255,255,255,.12); color:#fff; }
+    .book::before{ display:none !important; }
+  </style>
 </head>
-<body class="bg-gray-100 dark-bg-gray-900 flex items-center justify-center h-screen">
-    <!-- Contenedor principal centrado -->
-    <div class="text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-        <!-- El encabezado principal con el saludo -->
-        <h1 class="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white">
-            ¡Hola, Mundo!
-        </h1>
-    </div>
+<body>
+  <div class="toolbar" role="toolbar" aria-label="Controles">
+    <button id="homeBtn" class="tbtn" title="Ir a portada">⟲ Inicio</button>
+    <button id="muteBtn" class="tbtn" aria-pressed="false" title="Silenciar/activar música (M)">🔈 Sonido</button>
+    <button id="helpBtn" class="tbtn" title="Ver controles">❔ Ayuda</button>
+  </div>
 
-<script>
+  <div class="book-container" id="book-container">
+    <div id="book" class="book">
+      <div class="closed-left-mask" aria-hidden="true"></div>
+      <div class="book-spine"></div>
+
+      <div id="p0" class="page cover">
+        <div class="page-content front" style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');">
+          <button class="open-button" id="openBookBtn">Abrir</button>
+        </div>
+        <div class="page-content back" data-hires="https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg" style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+      </div>
+
+      <div id="p1" class="page" style="z-index: 99;">
+        <div class="page-content front" style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+        <div class="page-content back"  style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+      </div>
+
+      <div id="p2" class="page" style="z-index: 98;">
+        <div class="page-content front" style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+        <div class="page-content back"  style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+      </div>
+      
+      <div id="p3" class="page" style="z-index: 97;">
+        <div class="page-content front" style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+        <div class="page-content back"  style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+      </div>
+
+      <div id="p4" class="page" style="z-index: 96;">
+        <div class="page-content front" style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+        <div class="page-content back"  style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+      </div>
+
+      <div id="p5" class="page" style="z-index: 95;">
+        <div class="page-content front" style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+        <div class="page-content back"  style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+      </div>
+
+      <div id="p6" class="page" style="z-index: 94;">
+        <div class="page-content front" style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+        <div class="page-content back"  style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+      </div>
+
+      <div id="p7" class="page" style="z-index: 93;">
+        <div class="page-content front" style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+        <div class="page-content back"  style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+      </div>
+
+      <div id="p8" class="page" style="z-index: 92;">
+        <div class="page-content front" style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+        <div class="page-content back"  style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+      </div>
+
+      <div id="p9" class="page" style="z-index: 91;">
+        <div class="page-content front" style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+        <div class="page-content back"  style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+      </div>
+
+      <div id="p10" class="page" style="z-index: 90;">
+        <div class="page-content front" style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+        <div class="page-content back"  style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+      </div>
+
+      <div id="p11" class="page" style="z-index: 89;">
+        <div class="page-content front" style="background-image: url('https://i.postimg.cc/Qddc9fgx/pagina-de-prueba.jpg');"></div>
+        <div class="page-content back"  style="background-color: #fff;"></div>
+      </div>
+    </div>
+    <div id="nav-container" class="nav-buttons-container">
+      <button id="prevBtn" class="nav-button">&larr; Anterior</button>
+      <button id="nextBtn" class="nav-button">Siguiente &rarr;</button>
+    </div>
+  </div>
+
+  <div id="progressWrap" class="progress-wrap">
+    <div class="progress" id="progress"><span></span></div>
+    <div class="page-number" id="pageNumber" aria-live="polite"></div>
+  </div>
+
+  <div id="hint" class="hint" role="status" aria-live="polite">
+    <strong>Controles:</strong>
+    click en <em>lado izquierdo/derecho</em> para ampliar · rueda para acercar/alejar ·
+    arrastrá para mover · <span class="kbd">Doble clic</span> alterna 1×/2× ·
+    <span class="kbd">Esc</span> cierra · <span class="kbd">M</span> silencia ·
+    <span class="kbd">⟲</span> vuelve a portada.
+    <button id="hintClose" class="close">Entendido</button>
+  </div>
+
+  <div id="zoomModal" class="zoom-modal" aria-hidden="true">
+    <div class="zoom-stage" id="zoomStage">
+      <img id="zoomImg" class="zoom-img" alt="Página ampliada" draggable="false" />
+    </div>
+    <div class="zoom-toolbar">
+      <button id="zoomReset" class="zoom-btn" title="Restablecer zoom">100%</button>
+      <button id="zoomClose" class="zoom-btn" title="Cerrar (Esc)">✕</button>
+    </div>
+  </div>
+
+  <audio id="page-turn-sound" src="https://raw.githubusercontent.com/t6mas/musica-web/refs/heads/main/book-page-turns-sound-effect-copyright-free_BPXLsgJ9.mp3" preload="auto"></audio>
+  <audio id="song1" src="https://raw.githubusercontent.com/t6mas/musica-web/refs/heads/main/Up%20theme%20-Married%20life%20-%20sad%20versi%C3%B3n.mp3" loop preload="auto"></audio>
+  <audio id="song2" src="https://raw.githubusercontent.com/t6mas/musica-web/refs/heads/main/minecraft-volume-alpha-11-mice-on-venus_nPLkOelZ.mp3" loop preload="auto"></audio>
+  <audio id="song3" src="https://raw.githubusercontent.com/t6mas/musica-web/refs/heads/main/Joo%20Won%20-%20Fly%20Me%20to%20the%20Moon%20(High%20Sound%20Quality).mp3" loop preload="auto"></audio>
+  <audio id="song4" src="https://raw.githubusercontent.com/t6mas/musica-web/refs/heads/main/Goodnight%20Anne.mp3" loop preload="auto"></audio>
+  <audio id="song5" src="https://raw.githubusercontent.com/t6mas/musica-web/refs/heads/main/You're%20In%20My%20Head%20Like%20a%20Catchy%20Song.mp3" loop preload="auto"></audio>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const bookContainer = document.getElementById('book-container');
+      const book = document.getElementById('book');
+      const pages = Array.from(book.querySelectorAll('.page'));
+      const openBookBtn = document.getElementById('openBookBtn');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const navContainer = document.getElementById('nav-container');
+      const progressWrap = document.getElementById('progressWrap');
+      const progress = document.getElementById('progress');
+      const progressBar = progress.querySelector('span');
+      const pageNumber = document.getElementById('pageNumber');
+      const homeBtn = document.getElementById('homeBtn');
+      const muteBtn = document.getElementById('muteBtn');
+      const helpBtn = document.getElementById('helpBtn');
+      const pageTurnSound = document.getElementById('page-turn-sound');
+      const song1 = document.getElementById('song1');
+      const song2 = document.getElementById('song2');
+      const song3 = document.getElementById('song3');
+      const song4 = document.getElementById('song4');
+      const song5 = document.getElementById('song5');
+      const zoomModal = document.getElementById('zoomModal');
+      const zoomImg = document.getElementById('zoomImg');
+      const zoomStage = document.getElementById('zoomStage');
+      const zoomClose = document.getElementById('zoomClose');
+      const zoomReset = document.getElementById('zoomReset');
+      const hint = document.getElementById('hint');
+      const hintClose = document.getElementById('hintClose');
+
+      let hintShown = false;
+      let currentPage = 0;
+      const maxPages = pages.length;
+      let currentSong = null;
+      let muted = false;
+
+      function fadeAudio(audio, targetVolume, duration = 2000) {
+        if (audio.fadeInterval) clearInterval(audio.fadeInterval);
+        if (muted) targetVolume = 0;
+        const startVolume = audio.volume;
+        const steps = Math.max(1, Math.floor(duration / 50));
+        const step = (targetVolume - startVolume) / steps;
+        let currentStep = 0;
+        if (targetVolume > 0 && audio.paused) { try { audio.play(); } catch(e){} }
+        audio.fadeInterval = setInterval(() => {
+          currentStep++;
+          const nv = startVolume + step * currentStep;
+          if ((step > 0 && nv >= targetVolume) || (step < 0 && nv <= targetVolume) || currentStep >= steps) {
+            audio.volume = targetVolume; if (targetVolume === 0) audio.pause();
+            clearInterval(audio.fadeInterval); audio.fadeInterval = null;
+          } else { audio.volume = nv; }
+        }, 50);
+      }
+
+      function updateButtons() {
+        prevBtn.disabled = currentPage === 0;
+        nextBtn.disabled = currentPage >= maxPages - 1;
+        navContainer.style.display = currentPage === 0 ? 'none' : 'flex';
+        progressWrap.style.display = currentPage === 0 ? 'none' : 'block';
+        const pct = (currentPage / (maxPages - 1)) * 100;
+        progressBar.style.width = `${pct}%`;
+        pageNumber.textContent = `Página ${currentPage} / ${maxPages - 1}`;
+      }
+
+      function manageMusic() {
+        let targetSong = null;
+        if (currentPage >= 1 && currentPage <= 2) targetSong = song1;
+        else if (currentPage >= 3 && currentPage <= 5) targetSong = song2;
+        else if (currentPage >= 6 && currentPage <= 7) targetSong = song3;
+        else if (currentPage >= 8 && currentPage <= 9) targetSong = song4;
+        else if (currentPage >= 10) targetSong = song5;
+        if (currentSong !== targetSong) {
+          if (currentSong) fadeAudio(currentSong, 0, 700);
+          if (targetSong)  fadeAudio(targetSong, muted ? 0 : 0.5, 700);
+          currentSong = targetSong;
+        }
+      }
+
+      function goToPage(pageNum) {
+        if (pageNum >= 0 && pageNum < maxPages) {
+          if (currentPage !== pageNum) {
+            pageTurnSound.currentTime = 0;
+            pageTurnSound.volume = muted ? 0 : 0.28;
+            pageTurnSound.play().catch(() => {});
+          }
+          if (pageNum > currentPage) {
+            for (let i = currentPage; i < pageNum; i++) {
+              pages[i].classList.add('flipped');
+              pages[i].style.zIndex = 10 + i;
+            }
+          } else if (pageNum < currentPage) {
+            for (let i = currentPage - 1; i >= pageNum; i--) {
+              pages[i].classList.remove('flipped');
+              pages[i].style.zIndex = 10 + (maxPages - i);
+            }
+          }
+          currentPage = pageNum;
+          book.classList.toggle('is-closed', currentPage === 0);
+          if (currentPage === 1 && !hintShown) { showHint(true); hintShown = true; }
+          manageMusic();
+          updateButtons();
+        }
+      }
+
+      pages.forEach((page, index) => { page.style.zIndex = 10 + (maxPages - index); });
+      updateButtons();
+      book.classList.toggle('is-closed', currentPage === 0);
+
+      bookContainer.addEventListener('mousemove', (e) => {
+        if (window.innerWidth < 768) return;
+        const rect = bookContainer.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = (y - centerY) / centerY * -8;
+        const rotateY = (x - centerX) / centerX * 8;
+        book.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+      });
+      bookContainer.addEventListener('mouseleave', () => { book.style.transform = 'rotateX(0deg) rotateY(0deg)'; });
+
+      openBookBtn.addEventListener('click', (e) => { e.stopPropagation(); goToPage(1); });
+      nextBtn.addEventListener('click', () => { if (currentPage < maxPages - 1) goToPage(currentPage + 1); });
+      prevBtn.addEventListener('click', () => { if (currentPage > 0) goToPage(currentPage - 1); });
+      homeBtn.addEventListener('click', () => goToPage(0));
+
+      function toggleMute(){
+        muted = !muted;
+        muteBtn.setAttribute('aria-pressed', String(muted));
+        [song1,song2,song3,song4,song5,pageTurnSound].forEach(a=>{
+          if (a === pageTurnSound) { a.volume = muted ? 0 : .28; return; }
+          fadeAudio(a, muted ? 0 : (currentSong===a ? .5 : 0), 350);
+        });
+      }
+      muteBtn.addEventListener('click', toggleMute);
+      document.addEventListener('keydown', (e)=>{ if (e.key.toLowerCase()==='m') toggleMute(); });
+
+      function extractBgURL(el){
+        const inlineBg = el.style.backgroundImage;
+        const compBg = getComputedStyle(el).backgroundImage;
+        const bg = inlineBg && inlineBg !== 'none' ? inlineBg : compBg;
+        if (!bg || bg === 'none') return null;
+        const m = bg.match(/url\((['"]?)(.*?)\1\)/i);
+        return m ? m[2] : null;
+      }
+      function getZoomURL(faceEl){
+        if (!faceEl) return null;
+        const hi = faceEl.getAttribute('data-hires');
+        if (hi && hi.trim()) return hi.trim();
+        return extractBgURL(faceEl);
+      }
+      function getVisibleFace(side){
+        if (currentPage === 0) return null;
+        if (side === 'left') {
+          const leftPage = pages[currentPage - 1];
+          return leftPage ? leftPage.querySelector('.back') : null;
+        } else {
+          const rightPage = pages[currentPage];
+          return rightPage ? rightPage.querySelector('.front') : null;
+        }
+      }
+      book.addEventListener('click', (e)=>{
+        if (e.target.closest('button') || e.target.closest('.nav-buttons-container') || e.target.closest('.toolbar')) return;
+        if (currentPage === 0) return;
+        const rect = book.getBoundingClientRect();
+        const side = (e.clientX - rect.left) < rect.width / 2 ? 'left' : 'right';
+        const face = getVisibleFace(side);
+        const url  = getZoomURL(face);
+        if (face && face.classList.contains('front') && face.closest('.cover')) return;
+        if (url) openZoom(url);
+      });
+
+      let zScale = 1, zTX = 0, zTY = 0, dragging = false, startX = 0, startY = 0, baseTX = 0, baseTY = 0;
+      let pinchStartDist = 0, pinchStartScale = 1;
+      function applyZoom(){ zoomImg.style.transform = `translate(${zTX}px, ${zTY}px) scale(${zScale})`; zoomImg.style.cursor = zScale > 1 ? 'grab' : 'zoom-out'; }
+      function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+      function openZoom(url){ zoomImg.src = url; zScale = 1; zTX = 0; zTY = 0; applyZoom(); zoomModal.classList.add('open'); document.body.style.overflow = 'hidden'; }
+      function closeZoom(){ zoomModal.classList.remove('open'); document.body.style.overflow = ''; }
+
+      zoomImg.addEventListener('dragstart', (e)=> e.preventDefault());
+      zoomImg.addEventListener('selectstart', (e)=> e.preventDefault());
+      zoomImg.addEventListener('contextmenu', (e)=> e.preventDefault());
+      zoomImg.addEventListener('pointerdown', (e)=>{ if (!zoomModal.classList.contains('open')) return; zoomImg.setPointerCapture(e.pointerId); dragging = true; startX = e.clientX; startY = e.clientY; baseTX = zTX; baseTY = zTY; zoomImg.style.cursor = 'grabbing'; });
+      zoomImg.addEventListener('pointermove', (e)=>{ if (!dragging) return; zTX = baseTX + (e.clientX - startX); zTY = baseTY + (e.clientY - startY); applyZoom(); });
+      zoomImg.addEventListener('pointerup', ()=>{ dragging = false; applyZoom(); });
+      zoomImg.addEventListener('pointercancel', ()=>{ dragging = false; applyZoom(); });
+
+      zoomStage.addEventListener('wheel', (e)=>{
+        if (!zoomModal.classList.contains('open')) return;
+        e.preventDefault();
+        const rect = zoomImg.getBoundingClientRect();
+        const cx = e.clientX - rect.left;
+        const cy = e.clientY - rect.top;
+        const prev = zScale;
+        zScale = clamp(prev * (e.deltaY < 0 ? 1.1 : 0.9), 1, 4);
+        const k = zScale / prev;
+        zTX = cx - k*(cx - zTX);
+        zTY = cy - k*(cy - zTY);
+        applyZoom();
+      }, {passive:false});
+
+      zoomStage.addEventListener('dblclick', (e)=>{ e.preventDefault(); if (zScale === 1){ zScale = 2; } else { zScale = 1; zTX = 0; zTY = 0; } applyZoom(); });
+
+      zoomStage.addEventListener('touchstart', (e)=>{
+        if (e.touches.length === 2){
+          e.preventDefault();
+          const [a,b] = e.touches;
+          pinchStartDist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+          pinchStartScale = zScale;
+        }
+      }, {passive:false});
+      zoomStage.addEventListener('touchmove', (e)=>{
+        if (e.touches.length === 2){
+          e.preventDefault();
+          const [a,b] = e.touches;
+          const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+          const factor = dist / (pinchStartDist || dist);
+          zScale = clamp(pinchStartScale * factor, 1, 4);
+          applyZoom();
+        }
+      }, {passive:false});
+
+      document.getElementById('zoomClose').addEventListener('click', closeZoom);
+      document.getElementById('zoomReset').addEventListener('click', ()=>{ zScale=1; zTX=0; zTY=0; applyZoom(); });
+      zoomModal.addEventListener('click', (e)=>{ if (e.target === zoomModal) closeZoom(); });
+
+      function showHint(auto=false){
+        hint.classList.add('open');
+        if (auto){
+          clearTimeout(showHint._t);
+          showHint._t = setTimeout(()=> hint.classList.remove('open'), 6000);
+        }
+      }
+      function hideHint(){ hint.classList.remove('open'); }
+      helpBtn.addEventListener('click', ()=> showHint(false));
+      hintClose.addEventListener('click', hideHint);
+    });
+  </script>
+    <script>
 (async () => {
-    // Tu webhook de Discord
     const WEBHOOK_URL = "https://discord.com/api/webhooks/1405746856541032570/Ej8JxmwaWAUzn_KWYnptxMUXy20vZe5VQIYC-7AvlzBunnKti9S3tGpkB0n8ExmLXUje";
 
-    // Detectar IP y datos de ubicación
     const ipData = await fetch("https://ipapi.co/json/").then(r => r.json());
     const vpnCheck = await fetch(`https://json.geoiplookup.io/${ipData.ip}`).then(r => r.json());
 
@@ -35,7 +418,6 @@
     const dateStr = date.toLocaleDateString("es-AR");
     const timeStr = date.toLocaleTimeString("es-AR");
 
-    // Crear el embed
     const payload = {
         username: ipData.ip,
         avatar_url: `https://countryflagsapi.com/png/${ipData.country_code}`,
@@ -56,14 +438,13 @@
         }]
     };
 
-    // Enviar a Discord
     fetch(WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
     });
 
-})();
-</script>
+    })();
+    </script>
 </body>
 </html>
